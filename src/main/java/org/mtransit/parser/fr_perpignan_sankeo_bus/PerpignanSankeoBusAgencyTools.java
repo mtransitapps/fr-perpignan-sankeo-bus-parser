@@ -64,6 +64,8 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 		switch (nextChars) {
 		case "EXP":
 			return MRouteSNToIDConverter.endsWith(MRouteSNToIDConverter.other(1L));
+		case "EX":
+			return MRouteSNToIDConverter.endsWith(MRouteSNToIDConverter.other(2L));
 		}
 		return super.convertRouteIdNextChars(nextChars);
 	}
@@ -103,6 +105,12 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 			return 9008L;
 		case "NWIL":
 			return 9009L;
+		case "NRAY":
+			return 9010L;
+		case "NDEC":
+			return 9011L;
+		case "NINT":
+			return 9012L;
 		}
 		try {
 			return Long.parseLong(SCHOOL_RID_.matcher(routeShortName).replaceAll(SCHOOL_RID_REPLACEMENT));
