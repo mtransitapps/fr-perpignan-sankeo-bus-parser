@@ -1,9 +1,13 @@
 package org.mtransit.parser.fr_perpignan_sankeo_bus;
 
+import static org.mtransit.commons.RegexUtils.BEGINNING;
 import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
+import static org.mtransit.commons.RegexUtils.END;
 import static org.mtransit.commons.RegexUtils.atLeastOne;
 import static org.mtransit.commons.RegexUtils.group;
 import static org.mtransit.commons.RegexUtils.mGroup;
+import static org.mtransit.commons.RegexUtils.or;
+import static org.mtransit.parser.Constants.EMPTY;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +25,9 @@ import java.util.regex.Pattern;
 
 // https://transport.data.gouv.fr/datasets/gtfs-sankeo
 public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
+
+	private static final boolean FF_USING_ROUTE_ID_DEFAULT_CONVERTER = false;
+	// private static final boolean FF_USING_ROUTE_ID_DEFAULT_CONVERTER = true;
 
 	public static void main(@NotNull String[] args) {
 		new PerpignanSankeoBusAgencyTools().start(args);
@@ -61,6 +68,9 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 	@Nullable
 	@Override
 	public Long convertRouteIdNextChars(@NotNull String nextChars) {
+		if (FF_USING_ROUTE_ID_DEFAULT_CONVERTER) {
+			return super.convertRouteIdNextChars(nextChars);
+		}
 		switch (nextChars) {
 		case "EXP":
 			return MRouteSNToIDConverter.endsWith(MRouteSNToIDConverter.other(1L));
@@ -78,6 +88,9 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 	@Nullable
 	@Override
 	public Long convertRouteIdFromShortNameNotSupported(@NotNull String routeShortName) {
+		if (FF_USING_ROUTE_ID_DEFAULT_CONVERTER) {
+			return MRouteSNToIDConverter.defaultConverter(routeShortName);
+		}
 		switch (routeShortName) {
 		case "A":
 			return 1000L;
@@ -126,6 +139,23 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	@Override
+	public @NotNull String cleanRouteLongName(@NotNull String routeLongName) {
+		routeLongName = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguageNN(), routeLongName, getWords());
+		routeLongName = CleanUtils.cleanLabelFR(routeLongName);
+		return super.cleanRouteLongName(routeLongName);
+	}
+
+	private String[] getWords() {
+		return new String[]{
+				"TGV", "SNCF",
+				"HLM", "IUT",
+				"PE", "BFM",
+				"LEPA", "CFA",
+				"liO",
+		};
+	}
+
+	@Override
 	public boolean defaultAgencyColorEnabled() {
 		return true;
 	}
@@ -144,9 +174,15 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 		return true;
 	}
 
+	private static final Pattern ALLER_RETOUR = Pattern.compile(
+			BEGINNING + group(or("aller", "retour") + END
+			), Pattern.CASE_INSENSITIVE);
+
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
+		tripHeadsign = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguageNN(), tripHeadsign, getWords());
+		tripHeadsign = ALLER_RETOUR.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = CleanUtils.removeVia(tripHeadsign);
 		tripHeadsign = CleanUtils.SAINT.matcher(tripHeadsign).replaceAll(CleanUtils.SAINT_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
@@ -156,6 +192,7 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 	@NotNull
 	@Override
 	public String cleanStopName(@NotNull String gStopName) {
+		gStopName = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguageNN(), gStopName, getWords());
 		gStopName = CleanUtils.cleanStreetTypesFRCA(gStopName);
 		return CleanUtils.cleanLabelFR(gStopName);
 	}
