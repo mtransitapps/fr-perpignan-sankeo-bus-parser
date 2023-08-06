@@ -174,15 +174,31 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 		return true;
 	}
 
+	@Override
+	public boolean allowNonDescriptiveHeadSigns(long routeId) {
+		if (routeId > 20_000) { // School routes
+			return true;
+		}
+		return super.allowNonDescriptiveHeadSigns(routeId);
+	}
+
 	private static final Pattern ALLER_RETOUR = Pattern.compile(
 			BEGINNING + group(or("aller", "retour") + END
 			), Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern AM_ = Pattern.compile(group("AM"), Pattern.CASE_INSENSITIVE);
+	private static final String AM_REPLACEMENT = "Matin";
+
+	private static final Pattern PM_ = Pattern.compile(group("PM"), Pattern.CASE_INSENSITIVE);
+	private static final String PM_REPLACEMENT = "Après-Midi";
 
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
 		tripHeadsign = CleanUtils.toLowerCaseUpperCaseWords(getFirstLanguageNN(), tripHeadsign, getWords());
 		tripHeadsign = ALLER_RETOUR.matcher(tripHeadsign).replaceAll(EMPTY);
+		tripHeadsign = AM_.matcher(tripHeadsign).replaceAll(AM_REPLACEMENT);
+		tripHeadsign = PM_.matcher(tripHeadsign).replaceAll(PM_REPLACEMENT);
 		tripHeadsign = CleanUtils.removeVia(tripHeadsign);
 		tripHeadsign = CleanUtils.SAINT.matcher(tripHeadsign).replaceAll(CleanUtils.SAINT_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
