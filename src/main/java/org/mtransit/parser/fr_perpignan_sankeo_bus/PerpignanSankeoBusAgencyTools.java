@@ -98,6 +98,8 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 			return 2000L;
 		case "C":
 			return 3000L;
+		case "D":
+			return 4000L;
 		case "CANET":
 			return 9000L;
 		case "CANET'ON D'ETE":
@@ -124,6 +126,8 @@ public class PerpignanSankeoBusAgencyTools extends DefaultAgencyTools {
 			return 9011L;
 		case "NINT":
 			return 9012L;
+		case "NCSU":
+			return 9013L;
 		}
 		try {
 			return Long.parseLong(SCHOOL_RID_.matcher(routeShortName).replaceAll(SCHOOL_RID_REPLACEMENT));
